@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.WalletBalanceLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.mc.payment.core.service.entity.WalletBalanceLogEntity">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="walletId" column="wallet_id" jdbcType="BIGINT"/>
+            <result property="currentBalance" column="current_balance" jdbcType="DECIMAL"/>
+            <result property="currentFreezeAmount" column="current_freeze_amount" jdbcType="DECIMAL"/>
+            <result property="previousBalance" column="previous_balance" jdbcType="DECIMAL"/>
+            <result property="previousFreezeAmount" column="previous_freeze_amount" jdbcType="DECIMAL"/>
+            <result property="walletUpdateTime" column="wallet_update_time" jdbcType="TIMESTAMP"/>
+            <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,wallet_id,current_balance,
+        current_freeze_amount,previous_balance,previous_freeze_amount,
+        wallet_update_time,create_by,create_time,
+        update_by,update_time
+    </sql>
+    <select id="queryLatestRecordOfWallet"
+            resultType="com.mc.payment.core.service.entity.WalletBalanceLogEntity">
+        SELECT t1.*
+        FROM mcp_wallet_balance_log t1
+        WHERE (t1.wallet_id, t1.wallet_update_time) IN (
+            SELECT t2.wallet_id, MAX(t2.wallet_update_time)
+            FROM mcp_wallet_balance_log t2
+            GROUP BY t2.wallet_id
+        );
+    </select>
+</mapper>

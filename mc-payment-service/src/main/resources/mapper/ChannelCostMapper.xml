@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.ChannelCostMapper">
+
+    <select id="selectPage" resultType="com.mc.payment.core.service.model.rsp.ChannelCostPageRsp">
+        SELECT t1.id,
+        t1.cost_rule_name costRuleName,
+        t1.business_action businessAction,
+        t1.cost_type costType,
+        t1.cost,
+        t1.rate,
+        t1.round_method roundMethod,
+        t1.cost_limit_option costLimitOption,
+        t1.min_cost_limit minCostLimit,
+        t1.max_cost_limit maxCostLimit,
+        t1.billing_cycle billingCycle,
+        t1.deleted,
+        t1.create_by createBy,
+        t1.create_time createTime,
+        t1.update_by updateBy,
+        t1.update_time updateTime,
+        t1.cost_precision,
+        t1.channel_sub_type
+        from mcp_channel_cost t1
+        <where>
+            t1.deleted = 0
+            <if test="req.id!=null and req.id !=''">and t1.id = #{req.id}</if>
+            <if test="req.costRuleName!=null and req.costRuleName !=''">and t1.cost_rule_name like
+                CONCAT('%', #{req.costRuleName}, '%')
+            </if>
+            <if test="req.businessAction!=null">and t1.business_action = #{req.businessAction}</if>
+            <if test="req.costType!=null">and t1.cost_type = #{req.costType}</if>
+            <if test="req.cost!=null">and t1.cost = #{req.cost}</if>
+            <if test="req.roundMethod!=null">and t1.round_method = #{req.roundMethod}</if>
+            <if test="req.costLimit!=null">and t1.cost_limit_option like concat ('%' , #{req.costLimit} , '%')</if>
+            <if test="req.billingCycle!=null">and t1.billing_cycle = #{req.billingCycle}</if>
+        </where>
+        order by t1.create_time desc
+    </select>
+
+    <select id="list" resultType="com.mc.payment.core.service.entity.ChannelCostEntity">
+        SELECT DISTINCT
+        t1.id,
+        t1.cost_rule_name costRuleName,
+        t1.business_action businessAction,
+        t1.cost_type costType,
+        t1.cost,
+        t1.round_method roundMethod,
+        t1.cost_limit costLimit,
+        t1.billing_cycle billingCycle,
+        t1.deleted,
+        t1.create_by createBy,
+        t1.create_time createTime,
+        t1.update_by updateBy,
+        t1.update_time updateTime,
+        t1.cost_precision,
+        t1.channel_sub_type
+        from mcp_channel_cost t1
+        LEFT JOIN mcp_merchant_channel_relation t2 on t2.channel_id = t1.channel_id
+        <where>
+            t1.deleted = 0
+            <if test="businessAction!=null">and t1.business_action = #{businessAction}</if>
+            <if test="assetId!=null and assetId !=''">and t1.asset_id = #{assetId}</if>
+            <if test="merchantId!=null and merchantId !=''">and t2.merchant_id = #{merchantId}</if>
+        </where>
+    </select>
+</mapper>

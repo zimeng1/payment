@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.DepositRecordMapper">
+    <select id="page" resultType="com.mc.payment.core.service.model.rsp.DepositRecordPageRsp">
+        select dr.id,
+        dr.create_time,
+        dr.asset_name,
+        dr.asset_net,
+        dr.net_protocol,
+        dr.source_address,
+        dr.destination_address,
+        dr.merchant_id,
+        dr.amount,
+        dr.accumulated_amount,
+        dr.gas_fee,
+        dr.channel_fee,
+        dr.user_id,
+        dr.user_ip,
+        dr.channel_sub_type,
+        dr.status,
+        dr.expire_timestamp,
+        dr.wallet_id,
+        dr.addr_balance,
+        dr.fee_asset_name,
+        dr.rate,
+        dr.fee_rate,
+        dr.tracking_id,
+        dr.audit_status,
+        (dr.amount * dr.rate) as amountToU,
+        (dr.accumulated_amount * dr.rate) as accumulatedAmountToU,
+        (dr.addr_balance * dr.rate) as addrBalanceToU,
+        (dr.gas_fee * dr.fee_rate) as gasFeeToU,
+        m.name as merchantName,
+        dr.stay_reason as stayReason,
+        dr.remark,
+        dr.asset_type
+        from mcp_deposit_record dr
+        left join mcp_merchant m on dr.merchant_id = m.id
+        <where>
+            dr.deleted = 0 and m.deleted = 0
+            <if test="req.id!=null and req.id !=''">and dr.id like CONCAT(#{req.id}, '%')</if>
+            <if test="req.trackingId!=null and req.trackingId !=''">and dr.tracking_id = #{req.trackingId}</if>
+            <if test="req.userId !=null and req.userId != ''">
+                and dr.user_id = #{req.userId}
+            </if>
+            <if test="req.assetName!=null and req.assetName !=''">and dr.asset_name = #{req.assetName}</if>
+            <if test="req.merchantName!=null and req.merchantName !=''">and m.name like CONCAT('%' ,#{req.merchantName},
+                '%')
+            </if>
+            <if test="req.sourceAddress!=null and req.sourceAddress !=''">and dr.source_address = #{req.sourceAddress}
+            </if>
+            <if test="req.destinationAddress!=null and req.destinationAddress !=''">and dr.destination_address =
+                #{req.destinationAddress}
+            </if>
+
+            <if test="req.status!=null">and dr.status = #{req.status}</if>
+            <if test="req.createTimeStart !=null and req.createTimeStart != ''">
+                and dr.create_time >= #{req.createTimeStart}
+            </if>
+            <if test="req.createTimeEnd !=null and req.createTimeEnd != ''">
+                and dr.create_time &lt;= #{req.createTimeEnd}
+            </if>
+        </where>
+        order by dr.create_time desc
+    </select>
+    <select id="getDetail" resultType="com.mc.payment.core.service.model.rsp.DepositDetailExportRsp">
+        select * from mcp_deposit_record_detail
+        where record_id in
+        <foreach item="item" index="index" collection="depositIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+    <select id="getOverdue" resultType="com.mc.payment.core.service.entity.DepositRecordEntity">
+        select DISTINCT d.*
+        from mcp_deposit_record d
+                 left join
+             mcp_merchant_wallet m
+             on d.merchant_id = m.merchant_id
+        where d.channel_sub_type = 1
+          and d.status in (0, 1)
+          and
+        <![CDATA[from_unixtime(d.expire_timestamp / 1000) < SYSDATE()]]>
+          and m.status in (4, 5)
+    </select>
+    <select id="getDepositDetailExport" resultType="com.mc.payment.core.service.model.rsp.DepositDetailRsp">
+        select
+        drd.id,
+        d.tracking_id,
+        drd.merchant_name,
+        d.create_time as applyTime,
+        d.amount as applyAmount,
+        drd.tx_hash,
+        drd.create_time as confirmTime,
+        drd.asset_name,
+        drd.net_protocol,
+        drd.amount,
+        drd.source_address,
+        drd.destination_address,
+        drd.channel_sub_type,
+        drd.network_fee,
+        d.channel_fee,
+        drd.addr_balance,
+        drd.status,
+        ac.main_hash_url,
+        ac.test_hash_url
+        from mcp_deposit_record_detail drd
+        left join mcp_deposit_record d on drd.record_id = d.id
+        left join mcp_channel_asset_config ac on d.channel_sub_type = ac.channel_sub_type AND drd.asset_name =
+        ac.asset_name and drd.net_protocol = ac.net_protocol
+        <where>
+            <if test="req.id != null and req.id != ''">
+                and drd.id = #{req.id}
+            </if>
+            <if test="req.status != null and req.status != ''">
+                and d.status = #{req.status}
+            </if>
+            <if test="req.assetName != null and req.assetName != ''">
+                and drd.asset_name = #{req.assetName}
+            </if>
+            <if test="req.merchantName != null and req.merchantName != ''">
+                and drd.merchant_name = #{req.merchantName}
+            </if>
+            <if test="req.sourceAddress != null and req.sourceAddress != ''">
+                and drd.source_address = #{req.sourceAddress}
+            </if>
+            <if test="req.trackingId != null and req.trackingId != ''">
+                and d.tracking_id = #{req.trackingId}
+            </if>
+            <if test="req.destinationAddress != null and req.destinationAddress != ''">
+                and drd.destination_address = #{req.destinationAddress}
+            </if>
+            <if test="req.confirmTimeList != null and req.confirmTimeList.size() > 0">
+                <![CDATA[and drd.create_time >= #{req.confirmTimeList[0]} and drd.create_time <= #{req.confirmTimeList[1]}]]>
+            </if>
+        </where>
+        order by drd.create_time desc
+    </select>
+    <select id="queryReport" resultType="com.mc.payment.api.model.rsp.QueryDepositReportRsp">
+        select
+        d.tracking_id,
+        d.asset_name,
+        d.amount,
+        d.accumulated_amount,
+        d.gas_fee,
+        d.rate,
+        d.status as depositStatus,
+        t.status as payStatus,
+        t.tx_hash as orderNo,
+        d.create_time as depositTime
+        from
+        mcp_deposit_record d
+        left join
+        mcp_deposit_record_detail t
+        on d.id = t.record_id
+        where
+        d.tracking_id in
+        <foreach item="item" index="index" collection="trackingIdList" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

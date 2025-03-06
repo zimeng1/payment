@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.WithdrawalRecordMapper">
+    <select id="page" resultType="com.mc.payment.core.service.model.rsp.WithdrawalRecordPageRsp">
+        select wr.id,
+        wr.create_time,
+        wr.update_time,
+        wr.asset_name,
+        wr.fee_asset_name,
+        wr.asset_net,
+        wr.net_protocol,
+        wr.source_address,
+        wr.destination_address,
+        wr.tx_hash,
+        wr.merchant_id,
+        wr.amount,
+        wr.gas_fee,
+        wr.channel_fee,
+        wr.user_id,
+        wr.user_ip,
+        wr.channel_sub_type,
+        wr.status,
+        wr.audit_status,
+        wr.tracking_id,
+        wr.wallet_id,
+        wr.addr_balance,
+        wr.freeze_es_fee,
+        wr.rate,
+        wr.fee_rate,
+        (wr.amount * wr.rate) as amountToU,
+        (wr.addr_balance * wr.rate) as addrBalanceToU,
+        (wr.gas_fee * wr.fee_rate) as gasFeeToU,
+        (wr.freeze_es_fee * wr.fee_rate) as freezeEsFeeToU,
+        m.name as merchantName,
+        wr.stay_reason as stayReason,
+        wr.remark,
+        wr.asset_type
+        from mcp_withdrawal_record wr
+        left join mcp_merchant m on wr.merchant_id = m.id
+        <where>
+            wr.deleted = 0 and m.deleted = 0
+            <if test="req.id!=null and req.id !=''">and wr.id like CONCAT(#{req.id}, '%')</if>
+            <if test="req.trackingId!=null and req.trackingId !=''">and wr.tracking_id = #{req.trackingId}</if>
+            <if test="req.userId != null and req.userId != ''">
+                and wr.user_id = #{req.userId}
+            </if>
+            <if test="req.assetName!=null and req.assetName !=''">and wr.asset_name = #{req.assetName}</if>
+            <if test="req.merchantName!=null and req.merchantName !=''">and m.name like CONCAT('%' ,#{req.merchantName},
+                '%')
+            </if>
+            <if test="req.sourceAddress!=null and req.sourceAddress !=''">and wr.source_address = #{req.sourceAddress}
+            </if>
+            <if test="req.destinationAddress!=null and req.destinationAddress !=''">and wr.destination_address =
+                #{req.destinationAddress}
+            </if>
+
+            <if test="req.status!=null">and wr.status = #{req.status}</if>
+            <if test="req.createTimeStart != null and req.createTimeStart != ''">
+                and wr.create_time >= #{req.createTimeStart}
+            </if>
+            <if test="req.createTimeEnd != null and req.createTimeEnd != ''">
+                and wr.create_time &lt;= #{req.createTimeEnd}
+            </if>
+        </where>
+        order by wr.create_time desc
+    </select>
+</mapper>

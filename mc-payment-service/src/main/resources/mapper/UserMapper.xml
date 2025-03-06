@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.UserMapper">
+
+    <select id="page" resultType="com.mc.payment.core.service.model.rsp.UserPageRsp">
+        select
+        t1.*
+        from mcp_user t1
+        <where>
+            <if test="req.userName != null and req.userName != ''">
+                and t1.user_name like CONCAT(#{req.userName}, '%')
+            </if>
+            <if test="req.userAccount != null and req.userAccount != ''">
+                and t1.user_account like CONCAT(#{req.userAccount}, '%')
+            </if>
+            <if test="req.roleCode != null and req.roleCode != ''">
+                and t1.role_code = #{req.roleCode}
+            </if>
+            <if test="req.status != null">
+                and t1.`status` = #{req.status}
+            </if>
+            <if test="req.createTimeStart!=null">and t1.create_time >= #{req.createTimeStart}</if>
+            <if test="req.createTimeEnd!=null">and t1.create_time &lt;= #{req.createTimeEnd}</if>
+        </where>
+        order by t1.create_time desc
+    </select>
+</mapper>

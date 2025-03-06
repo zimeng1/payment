@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.MerchantChannelAssetMapper">
+
+    <resultMap id="BaseResultMap" type="com.mc.payment.core.service.entity.MerchantChannelAssetEntity">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="merchantId" column="merchant_id" jdbcType="BIGINT"/>
+        <result property="channelSubType" column="channel_sub_type" jdbcType="TINYINT"/>
+        <result property="assetName" column="asset_name" jdbcType="VARCHAR"/>
+        <result property="netProtocol" column="net_protocol" jdbcType="VARCHAR"/>
+        <result property="alarmStatus" column="alarm_status" jdbcType="TINYINT"/>
+        <result property="reserveAlarmValue" column="reserve_alarm_value" jdbcType="DECIMAL"/>
+        <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,merchant_id,channel_sub_type,
+        asset_name,net_protocol,alarm_status,
+        reserve_alarm_value,create_by,create_time,
+        update_by,update_time
+    </sql>
+
+    <select id="getAssetConfigOne" resultType="com.mc.payment.core.service.model.dto.MerchantAssetDto">
+        SELECT t1.channel_sub_type,
+               t1.asset_type,
+               t1.asset_name,
+               t1.net_protocol,
+               t1.deposit_status,
+               t1.withdrawal_status,
+               t2.asset_net,
+               t2.channel_asset_name,
+               t2.channel_net_protocol,
+               t2.min_deposit_amount,
+               t2.min_withdrawal_amount,
+               t2.max_deposit_amount,
+               t2.max_withdrawal_amount,
+               t2.token_address,
+               t2.fee_asset_name,
+               t3.icon_data netProtocolIcon,
+               t4.icon_data assetNameIcon
+        FROM mcp_merchant_channel_asset t1
+                 LEFT JOIN mcp_channel_asset_config t2 ON t1.channel_asset_id = t2.id
+                 LEFT JOIN mcp_pay_protocol t3 ON t1.net_protocol = t3.net_protocol and t3.asset_type = t1.asset_type
+                 LEFT JOIN mcp_platform_asset t4 ON t1.asset_name = t4.asset_name and t4.asset_type = t1.asset_type
+        WHERE t1.merchant_id = #{merchantId}
+          AND t1.asset_type = #{assetType}
+          AND t1.asset_name = #{assetName}
+          AND t1.net_protocol = #{netProtocol}
+    </select>
+    <select id="countByName" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM mcp_merchant_channel_asset t1
+                 LEFT JOIN mcp_channel_asset_config t2 ON t1.channel_asset_id = t2.id
+        WHERE t1.merchant_id = #{merchantId}
+          AND t1.asset_type = #{assetType}
+          AND t1.asset_name = #{assetName}
+    </select>
+
+    <select id="queryAssetDetail" resultType="com.mc.payment.core.service.model.dto.MerchantAssetDetailDto">
+        SELECT t1.channel_sub_type,
+        t1.asset_type,
+        t1.asset_name,
+        t1.net_protocol,
+        t1.deposit_status,
+        t1.withdrawal_status,
+        t2.asset_net,
+        t2.channel_asset_name,
+        t2.channel_net_protocol,
+        t2.min_deposit_amount,
+        t2.min_withdrawal_amount,
+        t2.max_deposit_amount,
+        t2.max_withdrawal_amount,
+        t2.token_address,
+        t2.fee_asset_name,
+        t3.icon_data netProtocolIcon,
+        t4.icon_data assetNameIcon,
+        t1.generate_wallet_status,
+        t1.generate_wallet_le_quantity,
+        t1.generate_wallet_quantity
+        FROM
+        mcp_merchant_channel_asset t1
+        INNER JOIN mcp_channel_asset_config t2 ON t1.channel_asset_id = t2.id
+        left JOIN mcp_pay_protocol t3 ON t1.net_protocol = t3.net_protocol AND t3.asset_type=t1.asset_type
+        left JOIN mcp_platform_asset t4 ON t1.asset_name = t4.asset_name AND t4.asset_type=t1.asset_type
+        WHERE
+        t1.merchant_id = #{merchantId}
+        <if test="assetType != null ">
+            AND t1.asset_type = #{assetType}
+        </if>
+        <if test="channelSubType != null ">
+            AND t1.channel_sub_type = #{channelSubType}
+        </if>
+        <if test="generateWalletStatus != null ">
+            AND t1.generate_wallet_status = #{generateWalletStatus}
+        </if>
+    </select>
+
+    <select id="queryMerchantGenerateWalletAsset"
+            resultType="com.mc.payment.core.service.model.dto.MerchantGenerateWalletAssetDto">
+        SELECT t1.channel_sub_type,
+        t1.asset_type,
+        t1.asset_name,
+        t1.net_protocol,
+        t2.channel_asset_name,
+        t2.channel_net_protocol,
+        t1.generate_wallet_status,
+        t1.generate_wallet_le_quantity,
+        t1.generate_wallet_quantity,
+        t1.merchant_id,
+        t3.`name` merchantName
+        FROM mcp_merchant_channel_asset t1
+        INNER JOIN mcp_channel_asset_config t2 ON t1.channel_asset_id = t2.id
+        LEFT JOIN mcp_merchant t3 ON t3.id = t1.merchant_id
+        WHERE t3.`status`=1
+        <if test="assetType != null ">
+            AND t1.asset_type = #{assetType}
+        </if>
+        <if test="channelSubType != null ">
+            AND t1.channel_sub_type = #{channelSubType}
+        </if>
+        <if test="generateWalletStatus != null ">
+            AND t1.generate_wallet_status = #{generateWalletStatus}
+        </if>
+    </select>
+    <select id="queryAsset" resultType="com.mc.payment.core.service.model.dto.MerchantAssetDto">
+        SELECT t1.channel_sub_type,
+        t1.asset_type,
+        t1.asset_name,
+        t1.net_protocol,
+        t1.deposit_status,
+        t1.withdrawal_status,
+        t2.asset_net,
+        t2.channel_asset_name,
+        t2.channel_net_protocol,
+        t2.min_deposit_amount,
+        t2.min_withdrawal_amount,
+        t2.max_deposit_amount,
+        t2.max_withdrawal_amount,
+        t2.token_address,
+        t2.fee_asset_name,
+        t3.icon_data netProtocolIcon,
+        t4.icon_data assetNameIcon
+        FROM
+        mcp_merchant_channel_asset t1
+        INNER JOIN mcp_channel_asset_config t2 ON t1.channel_asset_id = t2.id
+        left JOIN mcp_pay_protocol t3 ON t1.net_protocol = t3.net_protocol AND t3.asset_type=t1.asset_type
+        left JOIN mcp_platform_asset t4 ON t1.asset_name = t4.asset_name AND t4.asset_type=t1.asset_type
+        WHERE
+        t1.merchant_id = #{merchantId}
+        <if test="assetType != null ">
+            AND t1.asset_type = #{assetType}
+        </if>
+    </select>
+
+</mapper>

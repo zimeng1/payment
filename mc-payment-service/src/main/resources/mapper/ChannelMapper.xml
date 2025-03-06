@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.ChannelMapper">
+    <select id="selectPage" resultType="com.mc.payment.core.service.model.rsp.ChannelPageRsp">
+        select
+        t1.id,
+        t1.name,
+        t1.status,
+        t1.channel_type channelType,
+        t1.channel_sub_type channelSubType,
+        t1.priority priority,
+        t1.support_asset supportAsset,
+        t1.param,
+        t1.expiration_date_start expirationDateStart,
+        t1.expiration_date_end expirationDateEnd,
+        t1.contact,
+        t1.contact_tel contactTel,
+        t1.deleted,
+        t1.create_by createBy,
+        t1.create_time createTime,
+        t1.update_by updateBy,
+        t1.update_time updateTime,
+        t1.auth_url,
+        t1.webhook_url,
+        t1.channel_public_key,
+        t1.platform_public_key,
+        t1.expiration_date_type
+        from mcp_channel t1
+        <where>
+            t1.deleted = 0
+            <if test="req.id!=null and req.id !=''">and t1.id like CONCAT(#{req.id}, '%')</if>
+            <if test="req.name!=null and req.name !=''">and t1.name like CONCAT(#{req.name}, '%')</if>
+            <if test="req.status!=null">and t1.status = #{req.status}</if>
+            <if test="req.channelType!=null">and t1.channel_type = #{req.channelType}</if>
+            <if test="req.channelSubType!=null">and t1.channel_sub_type = #{req.channelSubType}</if>
+            <if test="req.expirationDateStart!=null">and t1.expiration_date_start >= #{req.expirationDateStart}</if>
+            <if test="req.expirationDateEnd!=null">and t1.expiration_date_end &lt;= #{req.expirationDateEnd}</if>
+            <if test="req.priority!=null">and t1.priority = #{req.priority}</if>
+        </where>
+        order by t1.create_time desc
+    </select>
+</mapper>
+

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.MerchantMapper">
+
+    <select id="page" resultType="com.mc.payment.core.service.model.rsp.MerchantPageRsp">
+        SELECT
+        t1.id,
+        t1.name,
+        t1.param,
+        t1.status,
+        t1.alarm_email alarmEmail,
+        t1.business_scope businessScope,
+        t1.channel_sub_types channelSubTypes,
+        t1.settlement_subject settlementSubject,
+        t1.settlement_info settlementInfo,
+        t1.settlement_email settlementEmail,
+        t1.contact,
+        t1.contact_tel contactTel,
+        t1.deleted,
+        t1.create_by createBy,
+        t1.create_time createTime,
+        t1.update_by updateBy,
+        t1.update_time updateTime,
+        t1.access_key,
+        t1.secret_key,
+        t1.webhook_url,
+        t1.ip_whitelist,
+        t1.deposit_audit,
+        t1.withdrawal_audit
+        FROM
+        mcp_merchant t1
+        <where>
+            t1.deleted = 0
+            <if test="req.id!=null and req.id !=''">and t1.id like CONCAT(#{req.id}, '%')</if>
+            <if test="req.name!=null and req.name !=''">and t1.name like CONCAT('%', #{req.name}, '%')</if>
+            <if test="req.status!=null">and t1.status = #{req.status}</if>
+            <if test="req.businessScope!=null and req.businessScope!=''">and
+                FIND_IN_SET(#{req.businessScope},t1.business_scope) > 0
+            </if>
+            <if test="req.channelSubTypeList != null and req.channelSubTypeList.size() > 0">
+                AND (
+                <foreach item="item" collection="req.channelSubTypeList" separator=" OR " open="" close="">
+                    FIND_IN_SET(#{item}, t1.channel_sub_types) > 0
+                </foreach>
+                )
+            </if>
+
+        </where>
+        GROUP BY t1.id
+        order by t1.create_time desc
+    </select>
+    <select id="getById" resultType="com.mc.payment.core.service.model.rsp.MerchantPageRsp">
+        SELECT
+        t1.id,
+        t1.name,
+        t1.param,
+        t1.status,
+        t1.alarm_email alarmEmail,
+        t1.business_scope businessScope,
+        t1.channel_sub_types channelSubTypes,
+        t1.settlement_subject settlementSubject,
+        t1.settlement_info settlementInfo,
+        t1.settlement_email settlementEmail,
+        t1.contact,
+        t1.contact_tel contactTel,
+        t1.deleted,
+        t1.create_by createBy,
+        t1.create_time createTime,
+        t1.update_by updateBy,
+        t1.update_time updateTime,
+        t1.access_key,
+        t1.secret_key,
+        t1.webhook_url,
+        t1.ip_whitelist
+        FROM
+        mcp_merchant t1
+        LEFT JOIN mcp_merchant_channel_relation t2 ON t2.merchant_id = t1.id
+        <where>
+            t1.deleted = 0
+            and t1.id = #{id}
+        </where>
+        limit 1
+    </select>
+    <select id="listById" resultType="com.mc.payment.core.service.model.req.MerchantChannelSaveReq">
+        SELECT t2.channel_sub_type  channelSubType,
+               t2.reserve_ratio     reserveRatio,
+               t2.reserve_fund_type reserveFundType,
+               t2.asset_name        assetName
+        FROM mcp_merchant t1
+                 LEFT JOIN mcp_merchant_channel_relation t2 ON t2.merchant_id = t1.id
+        WHERE t1.id = #{id}
+    </select>
+    <select id="listByChannel" resultType="com.mc.payment.core.service.entity.MerchantEntity">
+        SELECT DISTINCT t1.*
+        FROM mcp_merchant t1
+                 LEFT JOIN mcp_merchant_channel_relation t2 ON t1.id = t2.merchant_id
+            AND t1.deleted = 0
+        WHERE t2.channel_sub_type = #{channelSubType}
+    </select>
+    <select id="configPage" resultType="com.mc.payment.core.service.model.rsp.merchant.MerchantConfigPageRsp">
+        SELECT
+        t1.id,
+        t1.`name`,
+        t1.ip_whitelist,
+        t1.channel_sub_types,
+        t1.update_by,
+        t1.update_time,
+        (SELECT count(*) FROM mcp_merchant_channel_asset t2 WHERE t2.merchant_id = t1.id ) assetSum
+        FROM
+        mcp_merchant t1
+        <where>
+            t1.deleted = 0
+            <if test="req.id!=null and req.id !=''">and t1.id like CONCAT(#{req.id}, '%')</if>
+            <if test="req.name!=null and req.name !=''">and t1.name like CONCAT('%', #{req.name}, '%')</if>
+            <if test="req.channelSubTypeList != null and req.channelSubTypeList.size() > 0">
+                AND (
+                <foreach item="item" collection="req.channelSubTypeList" separator=" OR " open="" close="">
+                    FIND_IN_SET(#{item}, t1.channel_sub_types) > 0
+                </foreach>
+                )
+            </if>
+        </where>
+        ORDER BY t1.update_time DESC
+    </select>
+    <select id="currentLoginList" resultType="com.mc.payment.core.service.model.rsp.merchant.MerchantListRsp">
+        select id,name from mcp_merchant
+        <where>
+            <if test="req.name!=null and req.name !=''">and name like CONCAT('%', #{req.name}, '%')</if>
+        </where>
+        order by create_time desc
+    </select>
+</mapper>
+

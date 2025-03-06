@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.ChannelAssetConfigMapper">
+
+    <resultMap id="BaseResultMap" type="com.mc.payment.core.service.entity.ChannelAssetConfigEntity">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="channelSubType" column="channel_sub_type" jdbcType="TINYINT"/>
+        <result property="assetType" column="asset_type" jdbcType="TINYINT"/>
+        <result property="channelAssetName" column="channel_asset_name" jdbcType="VARCHAR"/>
+        <result property="channelNetProtocol" column="channel_net_protocol" jdbcType="VARCHAR"/>
+        <result property="assetName" column="asset_name" jdbcType="VARCHAR"/>
+        <result property="netProtocol" column="net_protocol" jdbcType="VARCHAR"/>
+        <result property="assetNet" column="asset_net" jdbcType="VARCHAR"/>
+        <result property="minDepositAmount" column="min_deposit_amount" jdbcType="DECIMAL"/>
+        <result property="minWithdrawalAmount" column="min_withdrawal_amount" jdbcType="DECIMAL"/>
+        <result property="maxDepositAmount" column="max_deposit_amount" jdbcType="DECIMAL"/>
+        <result property="maxWithdrawalAmount" column="max_withdrawal_amount" jdbcType="DECIMAL"/>
+        <result property="tokenAddress" column="token_address" jdbcType="VARCHAR"/>
+        <result property="testHashUrl" column="test_hash_url" jdbcType="VARCHAR"/>
+        <result property="mainHashUrl" column="main_hash_url" jdbcType="VARCHAR"/>
+        <result property="feeAssetName" column="fee_asset_name" jdbcType="VARCHAR"/>
+        <result property="estimateFee" column="estimate_fee" jdbcType="DECIMAL"/>
+        <result property="unEstimateFee" column="un_estimate_fee" jdbcType="DECIMAL"/>
+        <result property="defaultEstimateFee" column="default_estimate_fee" jdbcType="DECIMAL"/>
+        <result property="channelCredential" column="channel_credential" jdbcType="OTHER"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,channel_sub_type,asset_type,
+        channel_asset_name,channel_net_protocol,asset_name,
+        net_protocol,asset_net,min_deposit_amount,
+        min_withdrawal_amount,max_deposit_amount,max_withdrawal_amount,
+        token_address,test_hash_url,main_hash_url,
+        fee_asset_name,estimate_fee,un_estimate_fee,
+        default_estimate_fee,channel_credential,status,
+        create_by,create_time,update_by,
+        update_time
+    </sql>
+    <select id="queryAccountNotExistWallet"
+            resultType="com.mc.payment.core.service.entity.ChannelAssetConfigEntity">
+        SELECT *
+        FROM mcp_channel_asset_config t1
+        WHERE t1.channel_sub_type = #{channelSubTypeCode}
+          AND NOT EXISTS (SELECT 1
+                          FROM mcp_merchant_wallet t2
+                          WHERE t2.asset_name = t1.asset_name
+                            AND t2.net_protocol = t1.net_protocol
+                            AND t2.channel_sub_type = #{channelSubTypeCode}
+                            AND t2.account_id = #{accountId});
+    </select>
+</mapper>

@@ -1,0 +1,27 @@
+version: "3"
+services:
+  mc-payment-service:
+    image: mc-payment-service
+    restart: always
+    container_name: mc-payment-service
+    network_mode: host
+    ports:
+      - 8000:8000
+    volumes:
+      - ./logs:/app/logs
+      - ./jacoco-output:/app/jacoco-output
+      - ./key:/app/key
+    environment:
+      - var.nacos.address=http://172.25.51.1:8848
+      - spring.profiles.active=test
+      - TZ=Asia/Shanghai
+      - server.port=8000
+    healthcheck:
+      test: [  "CMD-SHELL", "wget -q -O - http://localhost:8000/actuator/health | grep UP || exit 1" ]
+      timeout: 2s
+      retries: 30
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"

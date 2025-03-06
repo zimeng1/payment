@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.PayProtocolMapper">
+
+    <resultMap id="BaseResultMap" type="com.mc.payment.core.service.entity.PayProtocolEntity">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="assetType" column="asset_type" jdbcType="TINYINT"/>
+        <result property="netProtocol" column="net_protocol" jdbcType="VARCHAR"/>
+        <result property="assetNet" column="asset_net" jdbcType="VARCHAR"/>
+        <result property="iconData" column="icon_data" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,asset_type,
+        net_protocol,asset_net,icon_data,
+        status,create_by,create_time,
+        update_by,update_time
+    </sql>
+</mapper>

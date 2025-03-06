@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.WithdrawalRecordDetailMapper">
+    <select id="getDetailPageList" resultType="com.mc.payment.core.service.model.rsp.WithdrawalDetailRsp">
+        select
+        drd.id,
+        d.tracking_id,
+        drd.record_id,
+        drd.create_time,
+        d.user_id,
+        drd.asset_name,
+        drd.net_protocol,
+        drd.amount,
+        drd.source_address,
+        drd.destination_address,
+        drd.tx_hash,
+        drd.channel_sub_type,
+        drd.network_fee,
+        d.channel_fee,
+        drd.addr_balance,
+        drd.rate,
+        drd.fee_rate,
+        drd.status,
+        (drd.network_fee + drd.service_fee) as gasFee,
+        (drd.amount * drd.rate) as amountToU,
+        (drd.addr_balance * drd.rate) as addrBalanceToU,
+        ((drd.network_fee + drd.service_fee) * drd.fee_rate) as gasFeeToU,
+        ac.fee_asset_name,
+        ac.main_hash_url,
+        ac.test_hash_url
+        from mcp_withdrawal_record_detail drd
+        left join mcp_withdrawal_record d on drd.record_id = d.id
+        left join mcp_channel_asset_config ac on d.channel_sub_type = ac.channel_sub_type AND drd.asset_name =
+        ac.asset_name and drd.net_protocol = ac.net_protocol
+        <where>
+            <if test="req.id != null and req.id != ''">
+                and drd.id = #{req.id}
+            </if>
+            <if test="req.status != null and req.status != ''">
+                and drd.status = #{req.status}
+            </if>
+            <if test="req.assetName != null and req.assetName != ''">
+                and drd.asset_name = #{req.assetName}
+            </if>
+            <if test="req.merchantName != null and req.merchantName != ''">
+                and drd.merchant_name = #{req.merchantName}
+            </if>
+            <if test="req.sourceAddress != null and req.sourceAddress != ''">
+                and drd.source_address = #{req.sourceAddress}
+            </if>
+            <if test="req.trackingId != null and req.trackingId != ''">
+                and d.tracking_id = #{req.trackingId}
+            </if>
+            <if test="req.destinationAddress != null and req.destinationAddress != ''">
+                and drd.destination_address = #{req.destinationAddress}
+            </if>
+            <if test="req.withdrawalTimeList != null and req.withdrawalTimeList.size() > 0">
+                <![CDATA[and drd.create_time >= #{req.withdrawalTimeList[0]} and drd.create_time <= #{req.withdrawalTimeList[1]}]]>
+            </if>
+        </where>
+        order by drd.create_time desc
+    </select>
+</mapper>

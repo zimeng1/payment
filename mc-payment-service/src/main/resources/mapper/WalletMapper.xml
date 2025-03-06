@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.WalletMapper">
+    <delete id="delChannelWalletAll">
+        DELETE
+        FROM mcp_channel_wallet;
+    </delete>
+    <delete id="delMerchantWalletAll">
+        DELETE
+        FROM mcp_merchant_wallet;
+    </delete>
+
+    <select id="getAvailableTransferIn" resultType="com.mc.payment.core.service.entity.WalletEntity">
+        SELECT t1.*
+        FROM mcp_wallet t1
+                 LEFT JOIN mcp_account t2 ON t2.id = t1.account_id
+            AND t2.deleted = 0
+        WHERE t1.deleted = 0
+          AND t1.status = 0
+          AND t2.account_type = #{accountType}
+          And t1.asset_type = #{assetType}
+          AND t1.asset_name = #{assetName}
+          AND t1.net_protocol = #{netProtocol}
+          AND t2.merchant_id = #{merchantId}
+        ORDER BY t1.balance DESC
+        LIMIT 1
+    </select>
+    <select id="getAvailableTransferOut" resultType="com.mc.payment.core.service.entity.WalletEntity">
+        SELECT t1.*
+        FROM mcp_wallet t1
+                 LEFT JOIN mcp_account t2 ON t2.id = t1.account_id
+            AND t2.deleted = 0
+        WHERE t1.deleted = 0
+          AND t1.status in (0, 2)
+          AND t2.account_type = #{accountType}
+          AND t1.balance - t1.freeze_amount > #{amount}
+          AND t1.asset_name = #{assetName}
+          AND t1.net_protocol = #{netProtocol}
+          AND t2.merchant_id = #{merchantId}
+        ORDER BY t1.balance - t1.freeze_amount DESC
+        LIMIT 1
+    </select>
+    <select id="page" resultType="com.mc.payment.core.service.model.rsp.WalletPageRsp">
+        SELECT t1.*,
+        t2.name accountName,
+        t2.channel_sub_type channelSubType
+        FROM mcp_wallet t1
+        LEFT JOIN mcp_account t2 ON t2.id = t1.account_id
+        WHERE t1.deleted = 0
+        AND t2.deleted = 0
+        <if test="req.accountIdList != null and req.accountIdList.size() > 0">
+            AND t1.account_id IN
+            <foreach collection="req.accountIdList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="req.channelSubTypeList != null and req.channelSubTypeList.size() > 0">
+            AND t2.channel_sub_type IN
+            <foreach collection="req.channelSubTypeList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="req.assetName != null and req.assetName != ''">
+            AND t1.asset_name = #{req.assetName}
+        </if>
+        <if test="req.id != null and req.id != ''">
+            AND t1.id = #{req.id}
+        </if>
+        <if test="req.netProtocol != null and req.netProtocol != ''">
+            AND t1.net_protocol = #{req.netProtocol}
+        </if>
+        <if test="req.walletAddress != null and req.walletAddress != ''">
+            AND t1.wallet_address = #{req.walletAddress}
+        </if>
+        order by t1.create_time desc
+    </select>
+
+    <sql id="queryByAmountMaxSql">
+        FROM mcp_wallet t1
+        LEFT JOIN mcp_account t2 ON t2.id = t1.account_id
+        AND t2.deleted = 0
+        WHERE t1.deleted = 0
+        AND t1.status in (0, 2)
+        AND t2.account_type =1
+        AND t1.asset_name = #{assetName}
+        AND t1.net_protocol = #{netProtocol}
+        <if test="merchantId != null and merchantId != ''">
+            AND t2.merchant_id = #{merchantId}
+        </if>
+        ORDER BY t1.balance -t1.freeze_amount DESC
+        LIMIT 1
+    </sql>
+
+    <select id="queryByAmountMax" resultType="com.mc.payment.core.service.entity.WalletEntity">
+        SELECT t1.*
+        <include refid="queryByAmountMaxSql"/>
+    </select>
+
+    <select id="queryAccountByAmountMax"
+            resultType="com.mc.payment.core.service.model.rsp.WalletOfMaxBalanceAccountRsp">
+        SELECT t1.id walletId, t1.balance, t1.asset_name assetName, t1.account_id accountId, t2.external_id externalId,
+        t2.name accountName,t1.wallet_address
+        <include refid="queryByAmountMaxSql"/>
+    </select>
+
+    <select id="getRichTransferOutList" resultType="com.mc.payment.core.service.entity.WalletEntity">
+        SELECT t1.*
+        FROM mcp_wallet t1
+                 LEFT JOIN mcp_account t2 ON t2.id = t1.account_id
+            AND t2.deleted = 0
+        WHERE t1.deleted = 0
+          AND t1.status in (0, 2)
+          AND t2.account_type = 1
+          AND t1.balance - t1.freeze_amount > 0
+          AND t2.merchant_id = #{merchantId}
+          AND t1.asset_name IN ${assetNames}
+        ORDER BY t1.balance - t1.freeze_amount DESC
+    </select>
+    <select id="walletBalanceList" resultType="com.mc.payment.core.service.model.rsp.WalletBalanceRsp">
+        SELECT t2.account_type accountType,
+        t1.asset_name assetName,
+        t3.asset_net assetNet,
+        t1.net_protocol netProtocol,
+        t1.wallet_address walletAddress,
+        t1.balance,
+        t1.freeze_amount freezeAmount
+        FROM mcp_wallet t1
+        LEFT JOIN mcp_account t2 ON t1.account_id = t2.id
+        LEFT JOIN mcp_pay_protocol t3 ON t1.asset_type = t3.asset_type AND t1.net_protocol = t3.net_protocol
+        WHERE t1.deleted=0 AND t1.merchant_id = #{merchantId}
+        <if test="accountType != NULL">
+            AND t2.account_type = #{accountType}
+        </if>
+        <if test="req.assetName != null and req.assetName != ''">
+            AND t1.asset_name = #{req.assetName}
+        </if>
+        <if test="req.netProtocol != null and req.netProtocol != ''">
+            AND t1.net_protocol = #{req.netProtocol}
+        </if>
+        <if test="req.walletAddress != null and req.walletAddress != ''">
+            AND t1.wallet_address = #{req.walletAddress}
+        </if>
+    </select>
+    <select id="shardList" resultType="com.mc.payment.core.service.entity.WalletEntity">
+        SELECT t1.*
+        FROM mcp_wallet t1
+        WHERE mod(t1.id, #{shardTotal}) = #{shardIndex}
+        ORDER BY t1.id
+    </select>
+    <select id="count" resultType="java.lang.Long">
+        SELECT count(t1.id)
+        FROM mcp_wallet t1
+                 LEFT JOIN mcp_account t2 ON t1.account_id = t2.id
+        WHERE t2.channel_sub_type = #{channelSubType}
+          AND t1.channel_asset_name = #{channelAssetName}
+    </select>
+    <select id="queryRefreshWalletBalanceDtoByIds"
+            resultType="com.mc.payment.core.service.model.dto.RefreshWalletBalanceDto">
+        SELECT t1.id walletId,
+        t1.channel_asset_name channelAssetName,
+        t2.external_id accountExternalId
+        FROM mcp_wallet t1 left join mcp_account t2 on t1.account_id = t2.id and t1.deleted = 0
+        WHERE t2.external_id > 0
+        <if test="walletIds != null and walletIds.size() > 0">
+            and t1.id IN
+            <foreach collection="walletIds" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        ORDER BY t1.balance DESC
+    </select>
+
+    <select id="queryWalletAddressList" resultType="java.lang.String">
+        SELECT t1.wallet_address
+        FROM mcp_wallet t1
+                 LEFT JOIN mcp_account t2 ON t1.account_id = t2.id
+        WHERE t1.merchant_id = #{req.merchantId}
+          AND t1.asset_name = #{req.assetName}
+          AND t1.net_protocol = #{req.netProtocol}
+          AND t1.status = 0
+          AND t2.account_type = #{req.accountType}
+    </select>
+
+    <select id="queryAccountIdAndAssetNameSumBalance"
+            resultType="com.mc.payment.core.service.model.rsp.WalletAssetSumBalanceRsp">
+        SELECT t1.account_id,
+        t1.asset_name,
+        COALESCE(SUM(t1.balance), 0) as sumBalance
+        FROM mcp_wallet t1
+        WHERE t1.deleted = 0
+        <if test="accountIdSet != null and accountIdSet.size() > 0">
+            AND t1.account_id IN
+            <foreach collection="accountIdSet" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="assetNameSet != null and assetNameSet.size() > 0">
+            AND t1.asset_name IN
+            <foreach collection="assetNameSet" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        GROUP BY t1.account_id, t1.asset_name
+    </select>
+    <select id="walletBalanceSum" resultType="com.mc.payment.core.service.model.rsp.WalletBalanceSumRsp">
+        SELECT
+        t2.account_type ,
+        t1.asset_name ,
+        t1.net_protocol,
+        sum(t1.balance) balance,
+        now() sumTime
+        FROM
+        mcp_wallet t1
+        LEFT JOIN mcp_account t2 ON t1.account_id = t2.id
+        <where>
+            t1.deleted = 0
+            AND t1.merchant_id = #{merchantId}
+            <if test="req.accountType != null">
+                AND t2.account_type = #{req.accountType}
+            </if>
+            <if test="req.assetName != null and req.assetName != ''">
+                AND t1.asset_name = #{req.assetName}
+            </if>
+            <if test="req.netProtocol != null and req.netProtocol != ''">
+                AND t1.net_protocol = #{req.netProtocol}
+            </if>
+        </where>
+
+        GROUP BY t2.account_type,t1.asset_name ,t1.net_protocol
+        ORDER BY t2.account_type;
+    </select>
+
+</mapper>

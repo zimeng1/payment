@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.ReceiveWebhookLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.mc.payment.core.service.entity.ReceiveWebhookLogEntity">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="webhookType" column="webhook_type" jdbcType="VARCHAR"/>
+            <result property="requestBody" column="request_body" jdbcType="VARCHAR"/>
+            <result property="headers" column="headers" jdbcType="VARCHAR"/>
+            <result property="ipAddress" column="ip_address" jdbcType="VARCHAR"/>
+            <result property="signature" column="signature" jdbcType="VARCHAR"/>
+            <result property="responseBody" column="response_body" jdbcType="VARCHAR"/>
+            <result property="receiveTime" column="receive_time" jdbcType="TIMESTAMP"/>
+            <result property="executionTime" column="execution_time" jdbcType="INTEGER"/>
+            <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,webhook_type,request_body,
+        headers,ip_address,signature,
+        response_body,receive_time,execution_time,
+        create_by,create_time,update_by,
+        update_time
+    </sql>
+
+</mapper>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.DepositRecordDetailMapper">
+
+    <select id="getDetailListByRecordId" resultType="com.mc.payment.core.service.model.rsp.DepositRecordDetailRsp">
+        select
+        drd.id,
+        drd.tx_hash,
+        drd.asset_name,
+        drd.net_protocol,
+        drd.source_address,
+        drd.destination_address,
+        drd.merchant_id,
+        drd.merchant_name,
+        drd.amount,
+        drd.network_fee,
+        drd.service_fee,
+        drd.create_time,
+        drd.addr_balance,
+        drd.rate,
+        drd.fee_rate,
+        drd.audit_status,
+        (drd.network_fee + drd.service_fee) as gasFee,
+        (drd.amount * drd.rate) as amountToU,
+        (drd.addr_balance * drd.rate) as addrBalanceToU,
+        ((drd.network_fee + drd.service_fee) * drd.fee_rate) as gasFeeToU,
+        ac.fee_asset_name,
+        ac.main_hash_url,
+        ac.test_hash_url,
+        m.name as merchantName
+        from mcp_deposit_record_detail drd
+        left join mcp_deposit_record d on drd.record_id = d.id
+        left join mcp_channel_asset_config ac on d.channel_sub_type = ac.channel_sub_type AND drd.asset_name =
+        ac.asset_name and drd.net_protocol = ac.net_protocol
+        left join mcp_merchant m on drd.merchant_id = m.id
+        <where>
+            drd.deleted = 0 and ac.deleted = 0 and m.deleted = 0
+            <if test="req.id!=null and req.id !=''">and drd.record_id = #{req.id}</if>
+            <if test="req.expireDate!=null">and drd.create_time &lt;= #{req.expireDate}</if>
+        </where>
+        order by drd.create_time desc
+    </select>
+    <select id="getDetailPageList" resultType="com.mc.payment.core.service.model.rsp.DepositDetailRsp">
+        select
+        drd.id,
+        d.tracking_id,
+        drd.merchant_name,
+        d.create_time as applyTime,
+        d.amount as applyAmount,
+        drd.tx_hash,
+        drd.create_time as confirmTime,
+        drd.asset_name,
+        drd.net_protocol,
+        drd.amount,
+        drd.source_address,
+        drd.destination_address,
+        drd.rate,
+        drd.fee_rate,
+        drd.channel_sub_type,
+        drd.network_fee,
+        d.channel_fee,
+        drd.addr_balance,
+        drd.status,
+        d.audit_status,
+        ac.main_hash_url,
+        ac.test_hash_url,
+        (drd.network_fee + drd.service_fee) as gasFee,
+        (drd.amount * drd.rate) as amountToU,
+        (drd.addr_balance * drd.rate) as addrBalanceToU,
+        ((drd.network_fee + drd.service_fee) * drd.fee_rate) as gasFeeToU,
+        ac.fee_asset_name
+        from mcp_deposit_record_detail drd
+        left join mcp_deposit_record d on drd.record_id = d.id
+        left join mcp_channel_asset_config ac on d.channel_sub_type = ac.channel_sub_type AND drd.asset_name =
+        ac.asset_name and drd.net_protocol = ac.net_protocol
+        <where>
+            <if test="req.id != null and req.id != ''">
+                and drd.id = #{req.id}
+            </if>
+            <if test="req.status != null and req.status != ''">
+                and drd.status = #{req.status}
+            </if>
+            <if test="req.assetName != null and req.assetName != ''">
+                and drd.asset_name = #{req.assetName}
+            </if>
+            <if test="req.merchantName != null and req.merchantName != ''">
+                and drd.merchant_name = #{req.merchantName}
+            </if>
+            <if test="req.sourceAddress != null and req.sourceAddress != ''">
+                and drd.source_address = #{req.sourceAddress}
+            </if>
+            <if test="req.trackingId != null and req.trackingId != ''">
+                and d.tracking_id = #{req.trackingId}
+            </if>
+            <if test="req.destinationAddress != null and req.destinationAddress != ''">
+                and drd.destination_address = #{req.destinationAddress}
+            </if>
+            <if test="req.confirmTimeList != null and req.confirmTimeList.size() > 0">
+                <![CDATA[and drd.create_time >= #{req.confirmTimeList[0]} and drd.create_time <= #{req.confirmTimeList[1]}]]>
+            </if>
+        </where>
+        order by drd.create_time desc
+    </select>
+</mapper>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.AccountMapper">
+
+    <select id="page" resultType="com.mc.payment.core.service.model.rsp.AccountPageRsp">
+        SELECT t1.*,
+        t2.name merchantName
+        FROM mcp_account t1
+        LEFT JOIN mcp_merchant t2 ON t2.id = t1.merchant_id AND t2.deleted = 0
+        <where>
+            t1.deleted = 0
+            <if test="req.id!=null and req.id !=''">and t1.id like CONCAT(#{req.id}, '%')</if>
+            <if test="req.name!=null and req.name !=''">and t1.name like CONCAT('%' ,#{req.name}, '%')</if>
+            <if test="req.accountType != null and req.accountType != ''">
+                <if test="req.accountType != null">
+                    AND t1.account_type = #{req.accountType}
+                </if>
+            </if>
+            <if test="req.merchantIdList!=null and req.merchantIdList.size()>0">
+                and t1.merchant_id in
+                <foreach item="item" index="index" collection="req.merchantIdList" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="req.channelSubTypeList!=null and req.channelSubTypeList.size()>0">
+                and t1.channel_sub_type in
+                <foreach item="item" index="index" collection="req.channelSubTypeList" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        order by t1.create_time desc
+    </select>
+
+    <sql id="queryByParamInSql">
+        <if test="req.accountIdList!=null and req.accountIdList.size()>0">
+            and a.id in
+            <foreach item="item" index="index" collection="req.accountIdList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="req.merchantIdList!=null and req.merchantIdList.size()>0">
+            and a.merchant_id in
+            <foreach item="item" index="index" collection="req.merchantIdList" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="req.accountTypeList!=null and req.accountTypeList.size()>0">
+            and (
+            <foreach item="item" index="index" collection="req.accountTypeList" separator="or">
+                a.account_type = #{item}
+            </foreach>
+            )
+        </if>
+        <if test="req.timeEnd!=null">and a.create_time &lt;= #{req.timeEnd}</if>
+    </sql>
+
+    <select id="findListByAccInfo" resultType="com.mc.payment.core.service.entity.AccountEntity">
+        select a.id, a.merchant_id, a.account_type, a.name from mcp_account a
+        <where>
+            a.deleted = 0
+            <include refid="queryByParamInSql"/>
+        </where>
+        order by a.create_time desc
+    </select>
+
+    <select id="findListByAccInfoAndWalletInfo" resultType="com.mc.payment.core.service.entity.AccountEntity">
+        select a.id, a.merchant_id, a.account_type, a.name from mcp_account a
+        left join mcp_wallet w on w.account_id = a.id
+        <where>
+            a.deleted = 0 and w.deleted = 0
+            <include refid="queryByParamInSql"/>
+            <if test="req.assetNameList!=null and req.assetNameList.size()>0">
+                and w.asset_name in
+                <foreach item="item" index="index" collection="req.assetNameList" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="req.addrList!=null and req.addrList.size()>0">
+                and w.id in
+                <foreach item="item" index="index" collection="req.addrList" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        order by a.create_time desc
+    </select>
+    <select id="queryAccountIdNotExistWallet" resultType="java.lang.String">
+        SELECT t1.id
+        FROM mcp_account t1
+        WHERE t1.channel_sub_type = #{channelSubType}
+          AND t1.account_type = #{accountType}
+          AND t1.merchant_id = #{merchantId}
+          AND t1.status = 3
+          AND NOT EXISTS (SELECT 1
+                          FROM mcp_merchant_wallet t2
+                          WHERE t1.id = t2.account_id
+                            AND t2.asset_name = #{assetName}
+                            AND t2.net_protocol = #{netProtocol}
+                            AND t2.`status` != 2)
+    </select>
+
+
+</mapper>

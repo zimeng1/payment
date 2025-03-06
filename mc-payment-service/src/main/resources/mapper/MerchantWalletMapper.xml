@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mc.payment.core.service.mapper.MerchantWalletMapper">
+
+    <resultMap id="BaseResultMap" type="com.mc.payment.core.service.entity.MerchantWalletEntity">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="merchantId" column="merchant_id" jdbcType="BIGINT"/>
+        <result property="accountId" column="account_id" jdbcType="BIGINT"/>
+        <result property="assetType" column="asset_type" jdbcType="TINYINT"/>
+        <result property="assetName" column="asset_name" jdbcType="VARCHAR"/>
+        <result property="netProtocol" column="net_protocol" jdbcType="VARCHAR"/>
+        <result property="purposeType" column="purpose_type" jdbcType="TINYINT"/>
+        <result property="walletAddress" column="wallet_address" jdbcType="VARCHAR"/>
+        <result property="balance" column="balance" jdbcType="DECIMAL"/>
+        <result property="freezeAmount" column="freeze_amount" jdbcType="DECIMAL"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="channelWalletId" column="channel_wallet_id" jdbcType="BIGINT"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="statusMsg" column="status_msg" jdbcType="VARCHAR"/>
+        <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,merchant_id,account_id,
+        asset_type,asset_name,net_protocol,
+        purpose_type,wallet_address,
+        balance,freeze_amount,remark,
+        channel_wallet_id,status,status_msg,
+        create_by,create_time,
+        update_by,update_time
+    </sql>
+
+    <sql id="walletQueryCondition">
+        <if test="req.id != null and req.id != ''">
+            and t1.id = #{req.id}
+        </if>
+        <if test="req.assetName != null and req.assetName != ''">
+            and t1.asset_name = #{req.assetName}
+        </if>
+        <if test="req.netProtocol != null and req.netProtocol != ''">
+            and t1.net_protocol = #{req.netProtocol}
+        </if>
+        <if test="req.walletAddress != null and req.walletAddress != ''">
+            and t1.wallet_address = #{req.walletAddress}
+        </if>
+        <if test="req.purposeType != null and req.purposeType != ''">
+            and t1.purpose_type = #{req.purposeType}
+        </if>
+        <if test="req.merchantId != null and req.merchantId != ''">
+            and t1.merchant_id = #{req.merchantId}
+        </if>
+        <if test="req.status != null">
+            and t1.status = #{req.status}
+        </if>
+        <if test="req.accountIdList != null and req.accountIdList.size() > 0">
+            AND account_id IN
+            <foreach collection="req.accountIdList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="req.channelSubTypeList != null and req.channelSubTypeList.size() > 0">
+            AND channel_sub_type IN
+            <foreach collection="req.channelSubTypeList" item="item" index="index" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="req.hideEmptyWalletList != null and req.hideEmptyWalletList.size() > 0">
+            <foreach collection="req.hideEmptyWalletList" item="item" index="index">
+                <if test="item == 0">
+                    and t1.freeze_amount >0
+                </if>
+                <if test="item == 1">
+                    and (t1.balance - t1.freeze_amount) >0
+                </if>
+                <if test="item == 2">
+                    and t1.balance >0
+                </if>
+            </foreach>
+        </if>
+    </sql>
+
+    <select id="walletBalanceSum" resultType="com.mc.payment.core.service.model.rsp.WalletBalanceSumRsp">
+        SELECT
+        t1.purpose_type accountType ,
+        t1.asset_name ,
+        t1.net_protocol,
+        sum(t1.balance) balance,
+        now() sumTime
+        FROM
+        mcp_merchant_wallet t1
+        <where>
+            t1.merchant_id = #{merchantId}
+            <if test="req.accountType != null">
+                AND t1.purpose_type = #{req.accountType}
+            </if>
+            <if test="req.assetName != null and req.assetName != ''">
+                AND t1.asset_name = #{req.assetName}
+            </if>
+            <if test="req.netProtocol != null and req.netProtocol != ''">
+                AND t1.net_protocol = #{req.netProtocol}
+            </if>
+        </where>
+
+        GROUP BY t1.purpose_type,t1.asset_name ,t1.net_protocol
+        ORDER BY t1.purpose_type;
+    </select>
+    <select id="page" resultType="com.mc.payment.core.service.model.rsp.MerchantWalletRsp">
+        select t1.*,t2.name merchant_name
+        from mcp_merchant_wallet t1
+        LEFT JOIN mcp_merchant t2 ON t2.id = t1.merchant_id AND t2.deleted = 0
+        <where>
+            <include refid="walletQueryCondition"></include>
+        </where>
+        <choose>
+            <when test="req.sortByAmount == 0 and req.sortOrder != null">
+                order by t1.freeze_amount ${req.sortOrder}
+            </when>
+            <when test="req.sortByAmount == 1 and req.sortOrder != null">
+                order by (t1.balance - t1.freeze_amount) ${req.sortOrder}
+            </when>
+            <when test="req.sortByAmount == 2 and req.sortOrder != null">
+                order by t1.balance ${req.sortOrder}
+            </when>
+            <otherwise>
+                <!-- Default sorting -->
+                order by t1.id desc
+            </otherwise>
+        </choose>
+    </select>
+    <select id="queryExportInfo" resultType="com.mc.payment.core.service.model.rsp.MerchantWalletExportRsp">
+        select
+        t1.id,
+        t1.account_name,
+        t2.name merchant_name,
+        t1.channel_sub_type,
+        t1.asset_name,
+        t1.net_protocol,
+        t1.wallet_address,
+        t1.freeze_amount,
+        t1.balance - t1.freeze_amount as availableAmount,
+        t1.balance,
+        t1.status,
+        t1.purpose_type,
+        IFNULL(t1.update_time,t1.create_time) as operateTime,
+        IFNULL(t1.update_by,t1.create_by) as operateBy
+        from
+        mcp_merchant_wallet t1
+        LEFT JOIN mcp_merchant t2 ON t2.id = t1.merchant_id AND t2.deleted = 0
+        <where>
+            <include refid="walletQueryCondition"></include>
+        </where>
+        order by t1.create_time desc
+    </select>
+    <select id="queryBalanceSumByAssetOrAddr"
+            resultType="com.mc.payment.core.service.entity.MerchantWalletEntity">
+        SELECT * from mcp_merchant_wallet
+        <where>
+            <!-- 根据账户ID列表进行筛选 -->
+            <if test="accountIdSet != null and accountIdSet.size() > 0">
+                AND account_id IN
+                <foreach item="accountId" collection="accountIdSet" open="(" separator="," close=")">
+                    #{accountId}
+                </foreach>
+            </if>
+
+            <!-- 根据资产名称列表进行筛选 -->
+            <if test="req != null and req.assetNameList != null and req.assetNameList.size() > 0">
+                AND asset_name IN
+                <foreach item="assetName" collection="req.assetNameList" open="(" separator="," close=")">
+                    #{assetName}
+                </foreach>
+            </if>
+
+            <!-- 根据地址列表进行筛选 -->
+            <if test="req != null and req.addrList != null and req.addrList.size() > 0">
+                AND id IN
+                <foreach item="addr" collection="req.addrList" open="(" separator="," close=")">
+                    #{addr}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="countAvailableWallet"
+            resultType="com.mc.payment.core.service.model.dto.CountAvailableWalletDto">
+        SELECT t3.*
+        FROM (SELECT t1.merchant_id,
+                     t2.name      merchant_name,
+                     t1.asset_name,
+                     t1.net_protocol,
+                     count(t1.id) walletCount
+              FROM mcp_merchant_wallet t1
+                       LEFT JOIN mcp_merchant t2 ON t1.merchant_id = t2.id
+              WHERE t1.asset_type = 0
+                AND t1.channel_sub_type = 1
+                AND t1.purpose_type = 0
+                AND t1.STATUS = 3
+              GROUP BY t1.merchant_id,
+                       t1.asset_name,
+                       t1.net_protocol) t3
+        WHERE t3.walletCount &lt; #{leCount}
+    </select>
+    <select id="getSnapshotInfo" resultType="com.mc.payment.core.service.entity.MerchantWalletEntity">
+        select merchant_id,
+               asset_type,
+               asset_name,
+               net_protocol,
+               purpose_type,
+               wallet_address,
+               balance,
+               now() as createTime,
+               now() as updateTime
+        from mcp_merchant_wallet
+        where balance &gt; 0
+    </select>
+    <select id="countAvailableDepositWalletFireBlocks"
+            resultType="com.mc.payment.core.service.model.dto.CountAvailableWalletDto">
+        SELECT t3.*,
+               t4.`name` merchantName
+        FROM (SELECT t1.merchant_id,
+                     t1.channel_sub_type,
+                     t1.asset_name,
+                     t1.net_protocol,
+                     COUNT(t2.id) AS wallet_count
+              FROM mcp_merchant_channel_asset t1
+                       LEFT JOIN mcp_merchant_wallet t2 ON t1.merchant_id = t2.merchant_id
+                  AND t1.channel_sub_type = t2.channel_sub_type
+                  AND t1.asset_name = t2.asset_name
+                  AND t1.net_protocol = t2.net_protocol
+                  AND t2.`status` = 3
+                  AND t2.purpose_type IN (0, 2)
+              WHERE t1.channel_sub_type = 1
+                AND t1.asset_type = 0
+                AND t1.deposit_status = 1
+              GROUP BY t1.merchant_id,
+                       t1.channel_sub_type,
+                       t1.asset_name,
+                       t1.net_protocol) t3
+                 LEFT JOIN mcp_merchant t4 ON t3.merchant_id = t4.id
+        WHERE t3.wallet_count &lt; #{leCount}
+    </select>
+    <select id="countAvailableWithdrawalWalletFireBlocks"
+            resultType="com.mc.payment.core.service.model.dto.CountAvailableWalletDto">
+        SELECT t3.*,
+               t4.`name` merchantName
+        FROM (SELECT t1.merchant_id,
+                     t1.channel_sub_type,
+                     t1.asset_name,
+                     t1.net_protocol,
+                     COUNT(t2.id) AS wallet_count
+              FROM mcp_merchant_channel_asset t1
+                       LEFT JOIN mcp_merchant_wallet t2 ON t1.merchant_id = t2.merchant_id
+                  AND t1.channel_sub_type = t2.channel_sub_type
+                  AND t1.asset_name = t2.asset_name
+                  AND t1.net_protocol = t2.net_protocol
+                  AND t2.`status` = 3
+                  AND t2.purpose_type in (1, 2)
+              WHERE t1.channel_sub_type = 1
+                AND t1.asset_type = 0
+                AND t1.withdrawal_status = 1
+              GROUP BY t1.merchant_id,
+                       t1.channel_sub_type,
+                       t1.asset_name,
+                       t1.net_protocol) t3
+                 LEFT JOIN mcp_merchant t4 ON t3.merchant_id = t4.id
+        WHERE t3.wallet_count &lt; #{leCount}
+    </select>
+
+    <select id="selectByIdForUpdate" resultType="com.mc.payment.core.service.entity.MerchantWalletEntity">
+        SELECT *
+        FROM mcp_merchant_wallet
+        WHERE id = #{id} FOR
+        UPDATE
+    </select>
+
+    <select id="queryAvailableWallet"
+            resultType="com.mc.payment.core.service.model.dto.MerchantAvailableWalletDto">
+        SELECT asset_name,
+               net_protocol,
+               purpose_type,
+               count(1) walletCount
+        FROM mcp_merchant_wallet
+        WHERE channel_sub_type = ${channelSubType}
+          AND merchant_id = ${merchantId}
+          AND `status` = 3
+        GROUP BY asset_name, net_protocol, purpose_type;
+    </select>
+
+</mapper>
