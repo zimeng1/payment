@@ -1,0 +1,39 @@
+update mcp_wallet set asset_name = 'USDC' ,net_protocol ='Arbitrum' WHERE channel_asset_name ='USDC_ARB_3SBJ';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='USDC',t2.asset_name='USDC',t1.asset_net='Arbitrum',t1.net_protocol='Arbitrum',t2.net_protocol='Arbitrum',t1.fee_asset_name='AETH' WHERE t2.channel_asset_name = 'USDC_ARB_3SBJ';
+update mcp_wallet set asset_name = 'TRX' ,net_protocol ='TRC20' WHERE channel_asset_name ='TRX';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='TRX',t2.asset_name='TRX',t1.asset_net='TRON',t1.net_protocol='TRC20',t2.net_protocol='TRC20',t1.fee_asset_name='TRX' WHERE t2.channel_asset_name = 'TRX';
+update mcp_wallet set asset_name = 'AVAX' ,net_protocol ='Avalanche C-Chain' WHERE channel_asset_name ='AVAX';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='AVAX',t2.asset_name='AVAX',t1.asset_net='Avalanche C-Chain',t1.net_protocol='Avalanche C-Chain',t2.net_protocol='Avalanche C-Chain',t1.fee_asset_name='AVAX' WHERE t2.channel_asset_name = 'AVAX';
+update mcp_wallet set asset_name = 'XRP' ,net_protocol ='Ripple' WHERE channel_asset_name ='XRP';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='XRP',t2.asset_name='XRP',t1.asset_net='Ripple',t1.net_protocol='Ripple',t2.net_protocol='Ripple',t1.fee_asset_name='XRP' WHERE t2.channel_asset_name = 'XRP';
+update mcp_wallet set asset_name = 'RONIN' ,net_protocol ='Ronin' WHERE channel_asset_name ='RON';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='RONIN',t2.asset_name='RONIN',t1.asset_net='Ronin',t1.net_protocol='Ronin',t2.net_protocol='Ronin',t1.fee_asset_name='RON' WHERE t2.channel_asset_name = 'RON';
+update mcp_wallet set asset_name = 'EOS' ,net_protocol ='EOS' WHERE channel_asset_name ='EOS';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='EOS',t2.asset_name='EOS',t1.asset_net='EOS',t1.net_protocol='EOS',t2.net_protocol='EOS',t1.fee_asset_name='EOS' WHERE t2.channel_asset_name = 'EOS';
+update mcp_wallet set asset_name = 'RUNE' ,net_protocol ='ERC20' WHERE channel_asset_name ='RUNE';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='RUNE',t2.asset_name='RUNE',t1.asset_net='Ethereum',t1.net_protocol='ERC20',t2.net_protocol='ERC20',t1.fee_asset_name='ETH' WHERE t2.channel_asset_name = 'RUNE';
+update mcp_wallet set asset_name = 'FLOKI' ,net_protocol ='ERC20' WHERE channel_asset_name ='FLOKI';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='FLOKI',t2.asset_name='FLOKI',t1.asset_net='Ethereum',t1.net_protocol='ERC20',t2.net_protocol='ERC20',t1.fee_asset_name='ETH' WHERE t2.channel_asset_name = 'FLOKI';
+update mcp_wallet set asset_name = 'FTM' ,net_protocol ='ERC20' WHERE channel_asset_name ='FTM';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='FTM',t2.asset_name='FTM',t1.asset_net='Ethereum',t1.net_protocol='ERC20',t2.net_protocol='ERC20',t1.fee_asset_name='ETH' WHERE t2.channel_asset_name = 'FTM';
+update mcp_wallet set asset_name = 'ARB' ,net_protocol ='ERC20' WHERE channel_asset_name ='ARB_ARB_FRK9';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='ARB',t2.asset_name='ARB',t1.asset_net='Ethereum',t1.net_protocol='ERC20',t2.net_protocol='ERC20',t1.fee_asset_name='ETH' WHERE t2.channel_asset_name = 'ARB_ARB_FRK9';
+update mcp_wallet set asset_name = 'INJ' ,net_protocol ='ERC20' WHERE channel_asset_name ='INJ';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='INJ',t2.asset_name='INJ',t1.asset_net='Ethereum',t1.net_protocol='ERC20',t2.net_protocol='ERC20',t1.fee_asset_name='ETH' WHERE t2.channel_asset_name = 'INJ';
+update mcp_wallet set asset_name = 'STX' ,net_protocol ='ERC20' WHERE channel_asset_name ='STX';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='STX',t2.asset_name='STX',t1.asset_net='Ethereum',t1.net_protocol='ERC20',t2.net_protocol='ERC20',t1.fee_asset_name='ETH' WHERE t2.channel_asset_name = 'STX';
+update mcp_wallet set asset_name = 'USDC' ,net_protocol ='TRC20' WHERE channel_asset_name ='TRX_USDC_6NU3';
+UPDATE mcp_asset_config t1 LEFT JOIN mcp_channel_asset t2 ON t1.asset_name = t2.asset_name AND t1.net_protocol = t2.net_protocol
+SET t1.asset_name='USDC',t2.asset_name='USDC',t1.asset_net='Tron',t1.net_protocol='TRC20',t2.net_protocol='TRC20',t1.fee_asset_name='TRX' WHERE t2.channel_asset_name = 'TRX_USDC_6NU3';

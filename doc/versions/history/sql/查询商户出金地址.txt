@@ -1,0 +1,43 @@
+-- 商户出金地址sql
+SELECT
+	t1.`name` '账号',
+	t2.asset_name '资产名称',
+	t2.net_protocol '网络协议',
+	t2.wallet_address '钱包地址'
+FROM
+	mcp_account t1
+	LEFT JOIN mcp_wallet t2 ON t2.account_id = t1.id 
+WHERE
+	t1.merchant_id = '1784881307149451266'
+	AND t1.account_type = 1
+	ORDER BY t2.asset_name
+
+
+--当前配置的资产清单
+
+SELECT
+    t1.asset_name '资产名称 asset_name',
+    t1.asset_net '资产网络 asset_net',
+    t1.net_protocol '网络协议 net_protocol',
+		t3.channel_asset_name 'fireblocks assetID'
+FROM
+    mcp_asset_config t1 LEFT JOIN mcp_channel_asset t3 ON t3.asset_name = t1.asset_name and 	t3.net_protocol = t1.net_protocol
+
+
+-- 没有创建钱包的资产
+
+SELECT
+    t1.asset_name '资产名称 asset_name',
+    t1.asset_net '资产网络 asset_net',
+    t1.net_protocol '网络协议 net_protocol',
+		t3.channel_asset_name 'fireblocks assetID',
+		t1.fee_asset_name '手续费币种'
+FROM
+    mcp_asset_config t1 LEFT JOIN mcp_channel_asset t3 ON t3.asset_name = t1.asset_name and 	t3.net_protocol = t1.net_protocol
+WHERE
+    NOT EXISTS (
+        SELECT 1
+        FROM mcp_wallet t2
+        WHERE t2.asset_name = t1.asset_name
+        AND t2.net_protocol = t1.net_protocol
+    );
