@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.mc.payment</groupId>
+        <artifactId>mc-payment</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>mc-payment-third-party</artifactId>
+    <packaging>pom</packaging>
+    <description>第三方接口的包装服务</description>
+    <modules>
+        <module>mc-payment-third-party-api</module>
+        <module>mc-payment-third-party-service</module>
+    </modules>
+
+
+</project>
